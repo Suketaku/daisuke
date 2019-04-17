@@ -1,0 +1,295 @@
+﻿gitの仕組みとherokuの仕組み
+
+――――――――――――――――――――――――――――――
+【railsの基本コマンド】
+★rails _5.1.4_ --version
+　→railsのバージョンを指定
+　→切り替えではない
+
+★rails _5.1.4_ new hello_world
+　→railsのバージョンを指定してアプリを作成する。 
+
+★railsはアプリそのもの。
+　hello_appというアプリを作成したらそのアプリのrailsのバージョンが規定される。
+
+
+――――――――――――――――――――――――――――――
+【Gemfileについて】
+★GemFileを見ると下記のような記述があるが、
+　# Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+
+　gem 'rails', '~> 5.1.4'
+
+　これは、5.1.4の4の部分について「新しいバージョンがあればそれをインストールする」
+　という意味となる
+　そのため、hello_appのディレクトリに移動してバージョンを確認すると、5.1.4を指定して
+　インストールしたとしても実際にインストールされるバージョンが違う可能性がある。
+
+　【~>】この記号がそういう動きにしている。
+　固定させることもできる。
+
+　source 'https://rubygems.org'でホスティングサーバーを指定。
+　gem 'rails', '~> 5.0.7' 5.0.7以上5.1未満のrailsを指定。
+　group :production do　〜〜 end　本番環境で使うgemを指定
+
+
+【用語】
+★フレームワーク
+　→「全体の処理の流れが実装されており、その中の一部の具体的な処理を自分で実装して、
+　→はめ込めるようになっているシステム」
+　→はめ込めるようになっている箇所をホットスポットと呼んだりします。
+　フレームワークとライブラリの違い
+　https://qiita.com/azuki8/items/ad7710fdefaedc63e3f7
+
+★ライブラリ
+　→「データベースに接続する」「ログを出力する」「ファイルの存在をチェックする」などの
+　→よく使われる処理をプログラムの部品の形で詰め込んだファイル
+
+　例：ActiveSupportライブラリ
+　　→railsのライブラリ
+　　→日付に関する計算を実行できる
+
+　　★require 'rubygems'
+　　# RubyGemsを読み込む
+
+　　★require 'active_support/all'
+　　# ActiveSupportの機能を全て読み込む
+
+　　★p Time.now
+　　# 現在日時を表示する
+
+　　★p Time.now.in_time_zone('Asia/Tokyo')
+　　# タイムゾーンを東京に変更して現在日時を表示する
+
+★gem
+　→RubyGemsが公開しているライブラリ
+　→「gem install rails」などでインストールできる。
+　→が、この方法で好き勝手なgemを複数使うと、依存関係の問題が発生する。
+　→「バージョン同士の互換性」「動かすのに必要なgemがない」などのエラーが発生する。
+　→そこでbundlerがgemをパッケージにして管理するようになった。
+　→bundlerはGemfileを使ってgemを管理する。
+
+★bundler
+　→パッケージ管理ツール、gemの一種
+　→gem同士の互換性を保ちつつ、パッケージ??の種類(何の話??)やバージョン??(何の??)を管理してくれる仕組み。
+　→rails newコマンドで実行される。
+
+★bundle install
+　→bundlerというgemを使ってGemfileの内容に従ってgemをインストールするコマンド
+　→厳密には、Gemfile.lockの内容の差分。
+　→その際に、Gemfile.lockを作成する。このファイルが、gemのバージョンをロックするため、
+　→使うgemのバージョンが変わらない。gemが更新されてもgemのバージョンはそのまま。
+　　#あらかじめ最新版のrailsを導入している場合に
+　　#bundle installで低いバージョンのrailsをインストールしようとすると失敗する
+
+★bundle update
+　→Gemfile.lockを更新したい時に使用する。
+　→Gemfile.lockの内容を考慮せず、Gemfileを一から読み直してgemをインストールする。
+
+
+★rvm
+　→Rubyのインストールやアンインストールを実施できるコマンドラインツール。
+　→複数のRubyのバージョンを管理できる。
+　→バージョンごとに任意のパスにインストールできる。
+　→複数のバージョンの切り替えられる。
+　→パッケージ管理システムとの違いは、複数のRubyのバージョンを管理できる点。
+　→Ruby Version Managerの略
+
+★rbenv
+　→複数のRubyバージョンを管理するコマンドラインツール
+　→rubyのインストールはできない。
+　→git hubかruby-buildでインストールする必要がある。
+　→バージョン切り替え機能がある。
+　→単機能であり、プラグインの導入などによって機能を追加できる(ruby-buildのように)。
+　→rbenv本体は、rvmよりも軽量。
+　
+
+――――――――――――――――――――――――――――――
+【git】
+★git init
+　→Gitのリポジトリを新規作成。
+　→既にあるリポジトリを再初期化する。
+　→.gitリポジトリを作成する。
+　→git init [ディレクトリ] [オプション]
+
+★git add
+　→ステージングを実施する。
+　→ステージングは、インデックスにコミットするファイルを登録すること。
+　→コミットメッセージにそぐわない無関係の変更を含めないための対策。
+　→作業の都合により、ワーキングツリーに大量の変更が積まれてしまうことがある。
+　→ステージングはその中からコミットに含めたい変更を選別する作業といえます。
+
+★git commit -m "Initial commit"
+　→ファイルの変更をローカルのgitリポジトリに保存する
+　→-mはメモで、""内はコミットメッセージ
+
+　##ここでいう保存の概念が不明。普通のファイル保存とは違うのか。
+
+★git push origin master
+　→リモートリポジトリに変更を反映する。
+　→origin masterはoriginというリモートリポジトリのmasterブランチにプッシュするという意味。
+
+★git remote -v
+　→リモートリポジトリ名が表示されるようにする
+　→
+
+★git log
+　→コミットしたログを見る
+
+★git status
+　→modefied:●●が赤文字だった場合
+　→前回の保存の時から●●の部分が修正された部分となる
+　→緑に代わると変更が反映されている状態
+
+★git pull
+　→リモートリポジトリからローカルリポジトリに持ってくる
+
+
+git --version
+
+git config --global user.name"Your Name"
+
+git config --global user.email your@example.com
+
+git config --global push.default matching
+
+git config --global alias.co checkout
+
+→上記はgitに登録
+
+
+https://qiita.com/konweb/items/621722f67fdd8f86a017
+
+――――――――――――――――――――――――――――――
+
+
+
+
+――――――――――――――――――――――――――――――
+
+Herokuにデプロイする
+
+Gemfileを編集する
+
+bundle install --without production
+
+git commit -a -m "Update Gemfile for Heroku"
+
+heroku login(heroku login --interactive)
+
+heroku keys:add
+
+heroku create
+
+git push heroku master
+
+heroku rename suketaku
+
+
+――――――――――――――――――――――――――――――
+heroku loginをしようとすると下記のエラーが表示された
+
+heroku: Press any key to open up the browser to login or q to exit: 
+
+Opening browser to https://cli-auth.heroku.com/auth/browser/36d43dfd-2bad-47ce-9a63-01aa17233c76
+
+ ›   Warning: Cannot open browser.
+
+heroku: Waiting for login... !
+
+SyntaxError: Unexpected end of JSON input
+ 
+    at JSON.parse (<anonymous>)
+
+    at HTTP._parse (/usr/local/heroku/node_modules/http-call/lib/http.js:342:30)
+
+
+しかし、
+heroku login --interactiveコマンドを実行するとログインできた
+
+――――――――――――――――――――――――――――――
+
+cloud9では一度ログアウトするとherokuがなくなってしまう・・
+https://qiita.com/bashinkei/items/c8d9bd1e622811e9c950
+
+herokuのインストルコマンド
+source <(curl -sL https://cdn.learnenough.com/heroku_install)
+
+――――――――――――――――――――――――――――――
+
+heroku keys:add
+→秘密鍵を渡すコマンド???
+→パスワード入力を省略できる。
+
+
+heroku createを実施すると
+
+git remote -vで
+herokuというエイリアスができていることが確認できる。
+
+git push heroku master
+とすると、マスターブランチのherokuに送るという意味になる。
+
+
+が、下記のエラーが出た
+remote:  !     Failed to install gems via Bundler.
+
+remote:  !     Detected sqlite3 gem which is not supported on Heroku:
+
+remote:  !     https://devcenter.heroku.com/articles/sqlite3
+
+herokuではsqlite3が使えないとのことだが意味が分からない。
+
+gemfile内の記述で、pgを追加しているにも関わらずインストールできなかった。
+可能性として、herokuはgit経由でデプロイするため、githubのリポジトリの内容が更新されていない可能性があるが
+うまくいかなかった。
+git add -Aや、git commitを実行しても何も表示されない
+
+bundle install --without production
+
+
+これは一回もコミットされていないリポジトリに対して push しようとしたときに生じるエラーです。
+No refs in common and none specified; doing nothing.
+Perhaps you should specify a branch such as 'master'.
+error: failed to push some refs to 'git@github.com:Suketaku/toy_app.git'
+
+git remote add origin https://github.com/Suketaku/toy_app
+→このコマンドでいけた
+
+パスワードを聞かれたので、おそらくSSHじゃない。
+
+
+
+git init
+git add .
+git commit -m "first commit"
+git remote add origin https://github.com/yuitoku/test.git
+git push -u origin master
+
+
+ssh -T git@github.com
+上記コマンドの結果
+
+Hi Suketaku! You've successfully authenticated, but GitHub does not provide shell access.
+
+
+herokuでアプリケーションを表示できないとき
+
+Method Not Allowedと表示されるときは、URLが間違っている可能性がある
+https://git.heroku.com/xxx.gitはあくまでもherokuのgitのURLなので、
+アプリケーション用URLではないです。
+
+https://toybaka.heroku.com/
+
+http://[アプリケーションID].heroku.com/
+
+となります。
+
+――――――――――――――――――――――――――――――
+Railsはデフォルトをどれだけ知っているかが重要
+メソッドに何も書かれていないとき
+app/viwes/リソース名/アクション名(メソッド名).html.erbが呼び出される
+
+開発効率が全然違う
+
+――――――――――――――――――――――――――――――
